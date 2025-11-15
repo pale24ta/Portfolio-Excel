@@ -8,12 +8,19 @@ import csv
 import os
 import datetime
 
-class Operacion:
-    def __init__(self,data = tuple()):
-        self.__registro = data
-    
 
 
+def guardar_en_escritrorio(archivo_excel):
+    if os.name == 'nt':  # Windows
+        escritorio = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Escritorio')
+        if escritorio is None:
+            escritorio = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')       
+    else:  # macOS y Linux
+        escritorio = os.path.join(os.path.join(os.path.expanduser('~')), 'Escritorio')
+        if escritorio is None:
+            escritorio = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
+    ruta_completa = os.path.join(escritorio, archivo_excel)
+    return ruta_completa
 
 def procesar_excel(path):
     # el primer paso seria copiar los datos a un archivo .csv y luego manipular el .csv
@@ -29,14 +36,16 @@ def procesar_excel(path):
                                   'No Operacion',
                                   'Cantiadad de Acciones',''
                                   'Monto Bs Negociable']
-    tipo_operacion = {'R' : 'Regular', 'P' : 'A Plazo', 'CC' : 'Cotizacion y Venta de Cierre'}
-    with open('exit.csv','w') as archive_csv:
+
+    with open('exit.csv','w', encoding = 'utf-8') as archive_csv:
         # creamos el archivo exit.csv, montamos todos los datos en el csv
         for dato in datos:
             archive_csv.write(dato + ',')
         archive_csv.write('\n')
 
-        with open(path,'r') as archive_dat:
+        # abrir el archivo .dat con una codificación tolerante a caracteres locales
+        # muchos archivos .dat/legacy usan latin-1/cp1252; usar 'errors=replace' evita excepciones
+        with open(path, 'r', encoding='latin-1', errors='replace') as archive_dat:
             count = 1
             for line in archive_dat:
                 if count  >= 4:
@@ -55,12 +64,13 @@ def procesar_excel(path):
         # Etapa para procesar del dataFrame
 
         dataFrame_mejorado = dataFrame.drop(['Precio Bs.S(Min)','Precio Bs.S(Max)','No Operacion'],axis = 1)
-        print(dataFrame)
 
         today = datetime.datetime.today()
+    
 
-        dataFrame.to_excel(f'{today.day}-{today.month}-{today.year}.xlsx')
-        dataFrame_mejorado.to_excel(f'{today.day}-{today.month}-{today.year}(Rev).xlsx')
+        dataFrame.to_excel(guardar_en_escritrorio(f'Bolsa_Caracas_{today.day}-{today.month}-{today.year}.xlsx'))
+        dataFrame_mejorado.to_excel(guardar_en_escritrorio(f'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'))
+
         
 
     # eliminamos el exit.csv
@@ -71,5 +81,19 @@ def procesar_excel(path):
     
 # def ganacia()
 
+from tkinter import Tk
+from tkinter import filedialog,messagebox,dialog
+
 if __name__ == '__main__':
-    procesar_excel('./input/diario.dat')
+    
+    root = Tk()
+    root.withdraw()
+
+    ruta_principal = filedialog.askopenfile(title= "Seleccione el archivo .dat")
+    ruta = ruta_principal.name
+    ruta_principal.close()
+    if not '.dat' in ruta:
+        messagebox.askyesnocancel('Error','Archivo incorrecto')
+    else:
+        procesar_excel(ruta)
+    # procesar_excel('./input/diario.dat')/home/brigido/Descargas/diario20251114.dat
