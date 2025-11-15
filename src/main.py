@@ -9,20 +9,7 @@ import os
 import datetime
 
 
-
-def guardar_en_escritrorio(archivo_excel):
-    if os.name == 'nt':  # Windows
-        escritorio = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Escritorio')
-        if escritorio is None:
-            escritorio = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')       
-    else:  # macOS y Linux
-        escritorio = os.path.join(os.path.join(os.path.expanduser('~')), 'Escritorio')
-        if escritorio is None:
-            escritorio = os.path.join(os.path.join(os.path.expanduser('~')), 'Desktop')
-    ruta_completa = os.path.join(escritorio, archivo_excel)
-    return ruta_completa
-
-def procesar_excel(path):
+def procesar_excel(path, destiny = None):
     # el primer paso seria copiar los datos a un archivo .csv y luego manipular el .csv
     datos = ['Tipo de Operacion','Acciones',
                                   'Simbolo',
@@ -67,17 +54,16 @@ def procesar_excel(path):
 
         today = datetime.datetime.today()
     
+        destiny = destiny + '/' + 'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'
 
-        dataFrame.to_excel(guardar_en_escritrorio(f'Bolsa_Caracas_{today.day}-{today.month}-{today.year}.xlsx'))
-        dataFrame_mejorado.to_excel(guardar_en_escritrorio(f'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'))
+        
+        dataFrame_mejorado.to_excel(destiny)
 
         
 
     # eliminamos el exit.csv
     if os.path.exists('exit.csv'):
-        os.remove(
-            'exit.csv'
-        )
+        os.remove('exit.csv')
     
 # def ganacia()
 
@@ -95,5 +81,7 @@ if __name__ == '__main__':
     if not '.dat' in ruta:
         messagebox.askyesnocancel('Error','Archivo incorrecto')
     else:
-        procesar_excel(ruta)
-    # procesar_excel('./input/diario.dat')/home/brigido/Descargas/diario20251114.dat
+        # Preguntamos donde guardara el archivos\s
+        ruta_destino = filedialog.askdirectory(title='Indique donde guardara el archivo')
+        print(ruta_destino)
+        procesar_excel(ruta,ruta_destino)
