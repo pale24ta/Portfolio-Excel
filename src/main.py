@@ -9,20 +9,18 @@ import os
 import datetime
 
 
-def procesar_excel(path, destiny = None):
+def operarDataFrame(dataFrame):
+    # Funcion para realizar los diferentes ajustes para el dataFrame que vamos a utilizar
+    nuevo_dataFrame = dataFrame.drop(['Precio Bs.S(Min)','Precio Bs.S(Max)','No Operacion'],axis = 1)
+
+    return nuevo_dataFrame
+
+def procesar_excel(path, destiny = None, operation = None):
     # el primer paso seria copiar los datos a un archivo .csv y luego manipular el .csv
-    datos = ['Tipo de Operacion','Acciones',
-                                  'Simbolo',
-                                  'Precio De Cierre(Anterior)',
-                                  'Precio De Cierre(Actual)',
-                                  'Valor Absoluto'
-                                  ,'Valor Re%'
-                                  ,'Precio Bs.S(Min)',
-                                  'Precio Bs.S(Max)',
-                                  'Precio Bs.S Promedio',
-                                  'No Operacion',
-                                  'Cantiadad de Acciones',''
-                                  'Monto Bs Negociable']
+    datos = [
+        'Tipo de Operacion','Acciones','Simbolo','Precio De Cierre(Anterior)',
+        'Precio De Cierre(Actual)','Valor Absoluto','Valor Re%','Precio Bs.S(Min)','Precio Bs.S(Max)','Precio Bs.S Promedio',
+        'No Operacion','Cantiadad de Acciones','Monto Bs Negociable']
 
     with open('exit.csv','w', encoding = 'utf-8') as archive_csv:
         # creamos el archivo exit.csv, montamos todos los datos en el csv
@@ -34,30 +32,36 @@ def procesar_excel(path, destiny = None):
         # muchos archivos .dat/legacy usan latin-1/cp1252; usar 'errors=replace' evita excepciones
         with open(path, 'r', encoding='latin-1', errors='replace') as archive_dat:
             count = 1
-            for line in archive_dat:
+            for line in archive_dat :
+
+                # para limitar la cantidad de datos que va a necesitar el cliente en el formato
+                # excel
+                if 'VT' in line:
+                    break
                 if count  >= 4:
                     archive_csv.write(line.replace('|',','))
                 count += 1
     
+    # cargamos el csv
+    
     # cargamos el csv como diccionario
     with open('exit.csv','r', encoding= 'utf-8') as archive_csv:
         dic = csv.DictReader(archive_csv)
-        dataFrame = pd.DataFrame(columns=datos)
+        dataFrame = pd.DataFrame(columns = datos)
 
+        # los datos ordenados en el diccionario, se almacenan en la siguiente fila para el archivo
         for dato in dic:
             dataFrame.loc[len(dataFrame)] = dato
-        
 
         # Etapa para procesar del dataFrame
 
-        dataFrame_mejorado = dataFrame.drop(['Precio Bs.S(Min)','Precio Bs.S(Max)','No Operacion'],axis = 1)
+        if operation:
+            dataFrame = operarDataFrame(dataFrame)
 
+        # Guardamos el archivo como un archivo con fecha actual
         today = datetime.datetime.today()
-    
-        destiny = destiny + '/' + 'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'
-
-        
-        dataFrame_mejorado.to_excel(destiny)
+        destiny = destiny + '/' + f'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'
+        dataFrame.to_excel(destiny)
 
         
 
@@ -84,4 +88,4 @@ if __name__ == '__main__':
         # Preguntamos donde guardara el archivos\s
         ruta_destino = filedialog.askdirectory(title='Indique donde guardara el archivo')
         print(ruta_destino)
-        procesar_excel(ruta,ruta_destino)
+        procesar_excel(ruta,ruta_destino,operarDataFrame)
