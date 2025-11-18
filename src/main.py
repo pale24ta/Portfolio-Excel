@@ -1,7 +1,7 @@
 """ Este scrip se encargaria de cargar un archivo cargado en
     Formato .dat para ser procesado y llevado a un formato mas
     legible que seria el formato excel"""
-
+"""
 import pandas as pd
 import openpyxl
 import csv
@@ -60,7 +60,7 @@ def procesar_excel(path, destiny = None, operation = None):
 
         # Guardamos el archivo como un archivo con fecha actual
         today = datetime.datetime.today()
-        destiny = destiny + '/' + f'Bolsa_Caracas{today.day}-{today.month}-{today.year}(Rev).xlsx'
+        destiny = destiny + '/' + f'Bolsa_Caracas{today.strftime('%A, %d de %B de %Y, %H:%M:%S')}(Rev).xlsx'
         dataFrame.to_excel(destiny)
 
         
@@ -89,3 +89,13 @@ if __name__ == '__main__':
         ruta_destino = filedialog.askdirectory(title='Indique donde guardara el archivo')
         print(ruta_destino)
         procesar_excel(ruta,ruta_destino,operarDataFrame)
+"""
+
+from vista.Ventana import Ventana
+
+def main():
+    root = Ventana(title="Portfolio Excel")
+
+
+if __name__ == '__main__':
+    main()
