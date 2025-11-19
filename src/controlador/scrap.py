@@ -59,7 +59,6 @@ def descargar_diario_actual():
         
         # descargamos archivo
         archivo = descargar_archivo_simple(url + cadena,cadena + '.dat')
-        print(url + cadena)
         
         # si el archivo fue descargado exitsamente
         if archivo:
